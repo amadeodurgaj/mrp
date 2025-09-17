@@ -1,0 +1,4 @@
+database:
+  url: jdbc:postgresql://localhost:5432/correct_db
+  username: correct_user
+  password: correct_password
