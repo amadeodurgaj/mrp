@@ -1,62 +1,28 @@
 package org.mrp.controller;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mrp.service.UserService;
+import org.mrp.util.JSONUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 
 public class UserController {
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final UserService userService = new UserService();
 
     public void handleRegister(HttpExchange exchange) throws IOException {
-        if ("POST".equals(exchange.getRequestMethod())) {
-            Map<String, String> request = mapper.readValue(exchange.getRequestBody(), Map.class);
-
-            String username = request.get("username");
-            String password = request.get("password");
-
-            System.out.println("Registering user: " + username);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "User " + username + " registered successfully");
-
-            sendJson(exchange, 201, response);
-        } else {
+        if (!"POST".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
+            return;
         }
+
+        Map<String, String> request = JSONUtil.fromJson(exchange.getRequestBody(), Map.class);
+        String username = request.get("username");
+        String password = request.get("password");
+
+        userService.register(username, password);
+
+        Map<String, String> response = Map.of("message", "User " + username + " registered successfully");
+        JSONUtil.sendJson(exchange, 201, response);
     }
 
-    public void handleLogin(HttpExchange exchange) throws IOException {
-        if ("POST".equals(exchange.getRequestMethod())) {
-            Map<String, String> request = mapper.readValue(exchange.getRequestBody(), Map.class);
-
-            String username = request.get("username");
-            String password = request.get("password");
-
-            String token = username + "-mrpToken";
-
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-
-            sendJson(exchange, 200, response);
-        } else {
-            exchange.sendResponseHeaders(405, -1);
-        }
-    }
-
-    private void sendJson(HttpExchange exchange, int status, Object response) throws IOException {
-        String json = mapper.writeValueAsString(response);
-        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
-        exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.sendResponseHeaders(status, bytes.length);
-
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(bytes);
-        }
-    }
 }

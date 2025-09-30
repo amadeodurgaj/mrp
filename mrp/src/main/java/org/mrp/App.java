@@ -13,8 +13,6 @@ public class App {
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
             server.createContext("/api/users/register", new UserController()::handleRegister);
-            server.createContext("/api/users/login", new UserController()::handleLogin);
-
 
             server.setExecutor(null);
             server.start();
