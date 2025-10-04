@@ -89,7 +89,9 @@ public class UserController {
                         "email", user.getEmail() == null ? "" : user.getEmail(),
                         "favoriteGenre", user.getFavoriteGenre() == null ? "" : user.getFavoriteGenre(),
                         "createdAt", user.getCreatedAt().toString(),
-                        "totalFavorites", user.getTotalFavorites()
+                        "totalFavorites", user.getTotalFavorites(),
+                        "totalRatings", user.getTotalRatings(),
+                        "averageRating", user.getAverageRating()
                 ));
             } else {
                 JSONUtil.sendJson(exchange, 404, Map.of("error", "User not found"));

@@ -96,15 +96,35 @@ public class UserService {
     }
 
     public User getUserByUsername(String username) {
-        String sql = "SELECT * FROM users WHERE username = ?";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String userSql = "SELECT * FROM users WHERE username = ?";
+        String favoritesSql = "SELECT COUNT(*) AS total_favorites FROM favorites f JOIN users u ON f.user_id = u.id WHERE u.username = ?";
+        String ratingsSql = "SELECT COUNT(*) AS total_ratings, COALESCE(AVG(stars),0) AS average_rating FROM ratings r JOIN users u ON r.user_id = u.id WHERE u.username = ?";
 
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToUser(rs);
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement userStmt = conn.prepareStatement(userSql);
+             PreparedStatement favStmt = conn.prepareStatement(favoritesSql);
+             PreparedStatement ratingStmt = conn.prepareStatement(ratingsSql)) {
+
+            userStmt.setString(1, username);
+            ResultSet rs = userStmt.executeQuery();
+            if (!rs.next()) return null;
+
+            User user = mapResultSetToUser(rs);
+
+            favStmt.setString(1, username);
+            ResultSet favRs = favStmt.executeQuery();
+            if (favRs.next()) {
+                user.setTotalFavorites(favRs.getInt("total_favorites"));
             }
+
+            ratingStmt.setString(1, username);
+            ResultSet ratingRs = ratingStmt.executeQuery();
+            if (ratingRs.next()) {
+                user.setTotalRatings(ratingRs.getInt("total_ratings"));
+                user.setAverageRating(ratingRs.getDouble("average_rating"));
+            }
+
+            return user;
 
         } catch (Exception e) {
             e.printStackTrace();

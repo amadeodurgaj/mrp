@@ -2,9 +2,8 @@ package org.mrp.model;
 
 import java.time.LocalDateTime;
 
-import java.time.LocalDateTime;
-
 public class User {
+
     private int id;
     private String username;
     private String email;
@@ -12,6 +11,8 @@ public class User {
     private LocalDateTime createdAt;
 
     private int totalFavorites;
+    private int totalRatings;
+    private double averageRating;
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -30,4 +31,10 @@ public class User {
 
     public int getTotalFavorites() { return totalFavorites; }
     public void setTotalFavorites(int totalFavorites) { this.totalFavorites = totalFavorites; }
+
+    public int getTotalRatings() { return totalRatings; }
+    public void setTotalRatings(int totalRatings) { this.totalRatings = totalRatings; }
+
+    public double getAverageRating() { return averageRating; }
+    public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
 }
