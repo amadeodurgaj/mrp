@@ -1,10 +1,10 @@
 package org.mrp.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class User {
-
-    private int id;
+    private UUID id;
     private String username;
     private String email;
     private String favoriteGenre;
@@ -14,8 +14,9 @@ public class User {
     private int totalRatings;
     private double averageRating;
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    // Getters and setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

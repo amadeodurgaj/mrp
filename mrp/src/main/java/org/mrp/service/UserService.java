@@ -1,5 +1,6 @@
 package org.mrp.service;
 
+import org.mrp.exception.*;
 import org.mrp.model.User;
 import org.mrp.util.DBUtil;
 
@@ -11,141 +12,145 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class UserService {
 
-    public static final int CODE_USER_EXISTS = 0;
-    public static final int CODE_LOGIN_SUCCESSFUL = 1;
-    public final int CODE_INTERNAL_ERROR = 2;
+    private final DBUtil dbUtil = new DBUtil();
+    private Map<String, UUID> activeTokens = new ConcurrentHashMap<>();
 
-    private static final Map<String, Integer> activeTokens = new ConcurrentHashMap<>();
-
-
-    public int registerUser(String username, String password) {
+    public UUID registerUser(String username, String password) throws ApiException {
         String checkSql = "SELECT id FROM users WHERE username = ?";
-        String insertSql = "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)";
+        String insertSql = "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?) RETURNING id";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = dbUtil.getConnection();
              PreparedStatement checkStmt = conn.prepareStatement(checkSql);
              PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
 
             checkStmt.setString(1, username);
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next()) {
-                return CODE_USER_EXISTS;
+                throw new UserAlreadyExistsException(username);
             }
 
             insertStmt.setString(1, username);
             insertStmt.setString(2, hashPassword(password));
             insertStmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
-            insertStmt.executeUpdate();
 
-            return CODE_LOGIN_SUCCESSFUL;
+            ResultSet inserted = insertStmt.executeQuery();
+            if (inserted.next()) {
+                return (UUID) inserted.getObject("id");
+            }
 
+            throw new InternalServerException(new RuntimeException("Failed to insert user"));
+
+        } catch (UserAlreadyExistsException e) {
+            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
-            return CODE_INTERNAL_ERROR;
+            throw new InternalServerException(e);
         }
     }
 
-    public String loginUser(String username, String password) {
+    public String loginUser(String username, String password) throws ApiException {
         String sql = "SELECT id, password_hash FROM users WHERE username = ?";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = dbUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                String storedHash = rs.getString("password_hash");
-                if (storedHash.equals(hashPassword(password))) {
-                    String token = username + "-mrpToken";
-                    int userId = rs.getInt("id");
-                    activeTokens.put(token, userId);
-                    return token;
-                }
+            if (!rs.next()) {
+                throw new InvalidCredentialsException();
             }
 
+            String storedHash = rs.getString("password_hash");
+            if (!verifyPassword(hashPassword(password), storedHash)) {
+                throw new InvalidCredentialsException();
+            }
+
+            UUID userId = (UUID) rs.getObject("id");
+            String token = generateToken(userId, username);
+
+            activeTokens.put(token, userId);
+
+            return token;
+
+        } catch (InvalidCredentialsException e) {
+            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerException(e);
         }
-        return null;
     }
 
-    public User getUserByToken(String token) {
-        Integer userId = activeTokens.get(token);
+    private String generateToken(UUID userId, String username) {
+        return userId.toString() + ":" + username + "-mrpToken";
+    }
+
+
+    public User getUserByToken(String token) throws ApiException {
+        UUID userId = activeTokens.get(token);
         if (userId == null) return null;
 
         String sql = "SELECT * FROM users WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = dbUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, userId);
+            stmt.setObject(1, userId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return mapResultSetToUser(rs);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerException(e);
         }
         return null;
     }
 
-    public User getUserByUsername(String username) {
-        String userSql = "SELECT * FROM users WHERE username = ?";
-        String favoritesSql = "SELECT COUNT(*) AS total_favorites FROM favorites f JOIN users u ON f.user_id = u.id WHERE u.username = ?";
-        String ratingsSql = "SELECT COUNT(*) AS total_ratings, COALESCE(AVG(stars),0) AS average_rating FROM ratings r JOIN users u ON r.user_id = u.id WHERE u.username = ?";
+    public User getUserByUsername(String username) throws ApiException {
+        String sql = "SELECT * FROM users WHERE username = ?";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement userStmt = conn.prepareStatement(userSql);
-             PreparedStatement favStmt = conn.prepareStatement(favoritesSql);
-             PreparedStatement ratingStmt = conn.prepareStatement(ratingsSql)) {
-
-            userStmt.setString(1, username);
-            ResultSet rs = userStmt.executeQuery();
-            if (!rs.next()) return null;
-
-            User user = mapResultSetToUser(rs);
-
-            favStmt.setString(1, username);
-            ResultSet favRs = favStmt.executeQuery();
-            if (favRs.next()) {
-                user.setTotalFavorites(favRs.getInt("total_favorites"));
-            }
-
-            ratingStmt.setString(1, username);
-            ResultSet ratingRs = ratingStmt.executeQuery();
-            if (ratingRs.next()) {
-                user.setTotalRatings(ratingRs.getInt("total_ratings"));
-                user.setAverageRating(ratingRs.getDouble("average_rating"));
-            }
-
-            return user;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-    public boolean updateUserProfile(int userId, String email, String favoriteGenre) {
-        String sql = "UPDATE users SET email = ?, favorite_genre = ? WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = dbUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+                throw new UserNotFoundException(username);
+            }
+
+            return mapResultSetToUser(rs);
+
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InternalServerException(e);
+        }
+    }
+
+
+
+    public boolean updateUserProfile(UUID userId, String email, String favoriteGenre) throws ApiException {
+        String sql = "UPDATE users SET email = ?, favorite_genre = ? WHERE id = ?";
+
+        try (Connection conn = dbUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, email);
             stmt.setString(2, favoriteGenre);
-            stmt.setInt(3, userId);
+            stmt.setObject(3, userId);
+
             return stmt.executeUpdate() > 0;
+
         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+            throw new InternalServerException(e);
         }
     }
+
 
 
     private String hashPassword(String password) throws Exception {
@@ -156,12 +161,16 @@ public class UserService {
 
     private User mapResultSetToUser(ResultSet rs) throws Exception {
         User user = new User();
-        user.setId(rs.getInt("id"));
+        user.setId((UUID)rs.getObject("id"));
         user.setUsername(rs.getString("username"));
         user.setEmail(rs.getString("email"));
         user.setFavoriteGenre(rs.getString("favorite_genre"));
         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         return user;
+    }
+
+    private boolean verifyPassword(String password, String storedHash) {
+        return password.equals(storedHash);
     }
 
 }

@@ -10,13 +10,13 @@ import java.nio.charset.StandardCharsets;
 
 public class JSONUtil {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    public static <T> T fromJson(InputStream input, Class<T> clazz) throws IOException {
+    public <T> T fromJson(InputStream input, Class<T> clazz) throws IOException {
         return mapper.readValue(input, clazz);
     }
 
-    public static void sendJson(HttpExchange exchange, int status, Object response) throws IOException {
+    public void sendJson(HttpExchange exchange, int status, Object response) throws IOException {
         String json = mapper.writeValueAsString(response);
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json");

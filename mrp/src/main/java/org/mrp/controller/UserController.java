@@ -1,4 +1,7 @@
 package org.mrp.controller;
+import org.mrp.exception.ApiException;
+import org.mrp.exception.BadRequestException;
+import org.mrp.exception.ForbiddenAccessException;
 import org.mrp.model.User;
 import org.mrp.service.UserService;
 import org.mrp.util.JSONUtil;
@@ -7,65 +10,60 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserController {
     private final UserService userService = new UserService();
 
+    private final JSONUtil jsonUtil = new JSONUtil();
+
     private record AuthContext(User authUser, String requestedUsername) {}
 
     public void handleRegister(HttpExchange exchange) throws IOException {
-        if (!"POST".equals(exchange.getRequestMethod())) {
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
             return;
         }
 
-        Map<String, String> request = JSONUtil.fromJson(exchange.getRequestBody(), Map.class);
+        Map<String, String> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
         String username = request.get("username");
         String password = request.get("password");
 
-        int result = userService.registerUser(username, password);
-        Map<String, String> response;
-
-        if (result == UserService.CODE_USER_EXISTS) {
-            response = Map.of("error", "User: " + username + " already exists");
-            JSONUtil.sendJson(exchange, 409, response);
-        } else if (result == UserService.CODE_LOGIN_SUCCESSFUL) {
-            response = Map.of("message", "User: " + username + " registered successfully");
-            JSONUtil.sendJson(exchange, 201, response);
-        } else {
-            response = Map.of("error", "Internal server error");
-            JSONUtil.sendJson(exchange, 500, response);
+        try {
+            UUID userId = userService.registerUser(username, password);
+            jsonUtil.sendJson(exchange, 201, Map.of(
+                    "message", "User '" + username + "' registered successfully",
+                    "userId", userId.toString()
+            ));
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
     }
+
 
     public void handleLogin(HttpExchange exchange) throws IOException {
-        if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            try {
-                Map<String, Object> request = JSONUtil.fromJson(exchange.getRequestBody(), Map.class);
-                String username = (String) request.get("username");
-                String password = (String) request.get("password");
-
-                if (username.isEmpty() || password.isEmpty()) {
-                    JSONUtil.sendJson(exchange, 400, Map.of("error", "Missing username or password"));
-                    return;
-                }
-
-                String token = userService.loginUser(username, password);
-
-                if (token != null) {
-                    JSONUtil.sendJson(exchange, 200, Map.of("token", token));
-                } else {
-                    JSONUtil.sendJson(exchange, 401, Map.of("error", "Invalid username or password"));
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                JSONUtil.sendJson(exchange, 500, Map.of("error", "Internal server error"));
-            }
-        } else {
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
+            return;
+        }
+
+        try {
+            Map<String, Object> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
+            String username = (String) request.get("username");
+            String password = (String) request.get("password");
+
+            if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
+                throw new BadRequestException("Missing username or password");
+            }
+
+            String token = userService.loginUser(username, password);
+            jsonUtil.sendJson(exchange, 200, Map.of("token", token));
+
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
     }
+
 
     public void handleGetProfile(HttpExchange exchange) throws IOException {
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -78,30 +76,26 @@ public class UserController {
             if (ctx == null) return;
 
             if (!ctx.requestedUsername().equals(ctx.authUser().getUsername())) {
-                JSONUtil.sendJson(exchange, 403, Map.of("error", "Forbidden: cannot access another user’s profile"));
-                return;
+                throw new ForbiddenAccessException();
             }
 
             User user = userService.getUserByUsername(ctx.requestedUsername());
-            if (user != null) {
-                JSONUtil.sendJson(exchange, 200, Map.of(
-                        "username", user.getUsername(),
-                        "email", user.getEmail() == null ? "" : user.getEmail(),
-                        "favoriteGenre", user.getFavoriteGenre() == null ? "" : user.getFavoriteGenre(),
-                        "createdAt", user.getCreatedAt().toString(),
-                        "totalFavorites", user.getTotalFavorites(),
-                        "totalRatings", user.getTotalRatings(),
-                        "averageRating", user.getAverageRating()
-                ));
-            } else {
-                JSONUtil.sendJson(exchange, 404, Map.of("error", "User not found"));
-            }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            JSONUtil.sendJson(exchange, 500, Map.of("error", "Internal server error"));
+            jsonUtil.sendJson(exchange, 200, Map.of(
+                    "username", user.getUsername(),
+                    "email", user.getEmail() == null ? "" : user.getEmail(),
+                    "favoriteGenre", user.getFavoriteGenre() == null ? "" : user.getFavoriteGenre(),
+                    "createdAt", user.getCreatedAt().toString(),
+                    "totalFavorites", user.getTotalFavorites(),
+                    "totalRatings", user.getTotalRatings(),
+                    "averageRating", user.getAverageRating()
+            ));
+
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
     }
+
 
     public void handleUpdateProfile(HttpExchange exchange) throws IOException {
         if (!"PUT".equalsIgnoreCase(exchange.getRequestMethod())) {
@@ -114,46 +108,45 @@ public class UserController {
             if (ctx == null) return;
 
             if (!ctx.requestedUsername().equals(ctx.authUser().getUsername())) {
-                JSONUtil.sendJson(exchange, 403, Map.of("error", "Forbidden: cannot edit another user’s profile"));
-                return;
+                throw new ForbiddenAccessException();
             }
 
-            Map<String, Object> body = JSONUtil.fromJson(exchange.getRequestBody(), Map.class);
+            Map<String, Object> body = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
             String email = (String) body.get("email");
             String favoriteGenre = (String) body.get("favoriteGenre");
 
             boolean updated = userService.updateUserProfile(ctx.authUser().getId(), email, favoriteGenre);
 
             if (updated) {
-                JSONUtil.sendJson(exchange, 200, Map.of("message", "Profile updated successfully"));
+                jsonUtil.sendJson(exchange, 200, Map.of("message", "Profile updated successfully"));
             } else {
-                JSONUtil.sendJson(exchange, 400, Map.of("error", "Failed to update profile"));
+                throw new BadRequestException("Failed to update profile");
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            JSONUtil.sendJson(exchange, 500, Map.of("error", "Internal server error"));
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
     }
 
-    private AuthContext authorizeAndExtract(HttpExchange exchange) throws IOException {
+
+    private AuthContext authorizeAndExtract(HttpExchange exchange) throws IOException, ApiException {
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            JSONUtil.sendJson(exchange, 401, Map.of("error", "Missing or invalid Authorization header"));
+            jsonUtil.sendJson(exchange, 401, Map.of("error", "Missing or invalid Authorization header"));
             return null;
         }
 
         String token = authHeader.substring("Bearer ".length()).trim();
         User authUser = userService.getUserByToken(token);
         if (authUser == null) {
-            JSONUtil.sendJson(exchange, 401, Map.of("error", "Invalid or expired token"));
+            jsonUtil.sendJson(exchange, 401, Map.of("error", "Invalid or expired token"));
             return null;
         }
 
         URI uri = exchange.getRequestURI();
         String[] pathParts = uri.getPath().split("/");
         if (pathParts.length < 4) {
-            JSONUtil.sendJson(exchange, 400, Map.of("error", "Invalid request path"));
+            jsonUtil.sendJson(exchange, 400, Map.of("error", "Invalid request path"));
             return null;
         }
 
