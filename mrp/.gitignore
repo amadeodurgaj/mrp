@@ -39,3 +39,5 @@ build/
 
 docker-compose.yml
 /src/main/resources/application.yaml
+
+DBCONFIG.txt

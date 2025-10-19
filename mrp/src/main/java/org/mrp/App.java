@@ -2,7 +2,7 @@ package org.mrp;
 
 
 import com.sun.net.httpserver.HttpServer;
-import org.mrp.controller.UserController;
+import org.mrp.router.RouteRegister;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -12,26 +12,8 @@ public class App {
         try {
 
             HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-            UserController userController = new UserController();
-
-            server.createContext("/api/users/register", userController::handleRegister);
-            server.createContext("/api/users/login", userController::handleLogin);
-
-            server.createContext("/api/users", exchange -> {
-                String path = exchange.getRequestURI().getPath();
-
-                if (path.matches("^/api/users/[^/]+/profile$")) {
-                    if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-                        userController.handleGetProfile(exchange);
-                    } else if ("PUT".equalsIgnoreCase(exchange.getRequestMethod())) {
-                        userController.handleUpdateProfile(exchange);
-                    } else {
-                        exchange.sendResponseHeaders(405, -1);
-                    }
-                } else {
-                    exchange.sendResponseHeaders(404, -1);
-                }
-            });
+            RouteRegister router = new RouteRegister();
+            router.registerRoutes(server);
 
             server.setExecutor(null);
             server.start();

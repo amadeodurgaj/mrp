@@ -4,6 +4,7 @@ import org.mrp.exception.BadRequestException;
 import org.mrp.exception.ForbiddenAccessException;
 import org.mrp.model.User;
 import org.mrp.service.UserService;
+import org.mrp.util.HttpMethodValidatorUtil;
 import org.mrp.util.JSONUtil;
 import com.sun.net.httpserver.HttpExchange;
 
@@ -20,10 +21,7 @@ public class UserController {
     private record AuthContext(User authUser, String requestedUsername) {}
 
     public void handleRegister(HttpExchange exchange) throws IOException {
-        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1);
-            return;
-        }
+        if (HttpMethodValidatorUtil.require(exchange, "POST")) return;
 
         Map<String, String> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
         String username = request.get("username");
@@ -42,10 +40,7 @@ public class UserController {
 
 
     public void handleLogin(HttpExchange exchange) throws IOException {
-        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1);
-            return;
-        }
+        if (HttpMethodValidatorUtil.require(exchange, "POST")) return;
 
         try {
             Map<String, Object> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
@@ -66,10 +61,7 @@ public class UserController {
 
 
     public void handleGetProfile(HttpExchange exchange) throws IOException {
-        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1);
-            return;
-        }
+        if (HttpMethodValidatorUtil.require(exchange, "GET")) return;
 
         try {
             AuthContext ctx = authorizeAndExtract(exchange);
@@ -98,10 +90,7 @@ public class UserController {
 
 
     public void handleUpdateProfile(HttpExchange exchange) throws IOException {
-        if (!"PUT".equalsIgnoreCase(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1);
-            return;
-        }
+        if (HttpMethodValidatorUtil.require(exchange, "PUT")) return;
 
         try {
             AuthContext ctx = authorizeAndExtract(exchange);
