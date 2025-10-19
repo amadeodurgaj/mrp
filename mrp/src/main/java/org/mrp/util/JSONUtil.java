@@ -1,5 +1,7 @@
 package org.mrp.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
@@ -10,7 +12,13 @@ import java.nio.charset.StandardCharsets;
 
 public class JSONUtil {
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
+
+    public JSONUtil() {
+        mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
 
     public <T> T fromJson(InputStream input, Class<T> clazz) throws IOException {
         return mapper.readValue(input, clazz);

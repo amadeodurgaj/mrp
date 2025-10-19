@@ -17,11 +17,12 @@ public class UserController {
     private final UserService userService = new UserService();
 
     private final JSONUtil jsonUtil = new JSONUtil();
+    private final HttpMethodValidatorUtil validatorUtil = new HttpMethodValidatorUtil();
 
     private record AuthContext(User authUser, String requestedUsername) {}
 
     public void handleRegister(HttpExchange exchange) throws IOException {
-        if (HttpMethodValidatorUtil.require(exchange, "POST")) return;
+        if (validatorUtil.require(exchange, "POST")) return;
 
         Map<String, String> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
         String username = request.get("username");
@@ -40,7 +41,7 @@ public class UserController {
 
 
     public void handleLogin(HttpExchange exchange) throws IOException {
-        if (HttpMethodValidatorUtil.require(exchange, "POST")) return;
+        if (validatorUtil.require(exchange, "POST")) return;
 
         try {
             Map<String, Object> request = jsonUtil.fromJson(exchange.getRequestBody(), Map.class);
@@ -61,7 +62,7 @@ public class UserController {
 
 
     public void handleGetProfile(HttpExchange exchange) throws IOException {
-        if (HttpMethodValidatorUtil.require(exchange, "GET")) return;
+        if (validatorUtil.require(exchange, "GET")) return;
 
         try {
             AuthContext ctx = authorizeAndExtract(exchange);
@@ -90,7 +91,7 @@ public class UserController {
 
 
     public void handleUpdateProfile(HttpExchange exchange) throws IOException {
-        if (HttpMethodValidatorUtil.require(exchange, "PUT")) return;
+        if (validatorUtil.require(exchange, "PUT")) return;
 
         try {
             AuthContext ctx = authorizeAndExtract(exchange);
