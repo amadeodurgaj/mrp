@@ -139,5 +139,6 @@ At the end of development:
 | User get and edit profile integration | Oct 4 | 4h              |
 | Exception system and refactor         | Oct 18 | 3h              |
 | Integration tests and documentation   | Oct 19 | 3h              |
-| **Total**                             |  | **20 hours**    |
+| Addition of Media CRUD                | Oct 19 | 3h              |
+| **Total**                             |  | **23 hours**    |
 
