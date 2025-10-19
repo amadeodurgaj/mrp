@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MediaIntegrationTest {
 
-    private static final String BASE_URL = "http://localhost:8080/api/media";
+    private final String BASE_URL = "http://localhost:8080/api/media";
     private static HttpClient client;
     private static int createdMediaId;
 

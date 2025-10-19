@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserIntegrationTest {
 
-    private static final String BASE_URL = "http://localhost:8080/api/users";
+    private final String BASE_URL = "http://localhost:8080/api/users";
     private static HttpClient client;
 
     @BeforeAll
