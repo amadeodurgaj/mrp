@@ -114,6 +114,116 @@
           }
         }
       ]
+    },
+    {
+      "name": "Media",
+      "item": [
+        {
+          "name": "Create Media Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/media",
+              "host": [
+                "http://localhost:8080"
+              ],
+              "path": [
+                "api",
+                "media"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Media Entry",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "http://localhost:8080/api/media/1",
+              "host": [
+                "http://localhost:8080"
+              ],
+              "path": [
+                "api",
+                "media",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Media Entry",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "http://localhost:8080/api/media/1",
+              "host": [
+                "http://localhost:8080"
+              ],
+              "path": [
+                "api",
+                "media",
+                "1"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"action\"\n  ],\n  \"ageRestriction\": 16\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Media by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/media/1",
+              "host": [
+                "http://localhost:8080"
+              ],
+              "path": [
+                "api",
+                "media",
+                "1"
+              ]
+            },
+            "header": []
+          }
+        },
+        {
+          "name": "Get all media",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:8080/api/media",
+              "host": [
+                "http://localhost:8080"
+              ],
+              "path": [
+                "api",
+                "media"
+              ]
+            },
+            "header": []
+          }
+        }
+      ]
     }
   ]
 }

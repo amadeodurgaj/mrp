@@ -60,12 +60,18 @@ Server runs at: http://localhost:8080
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| POST | /api/users/register | Register a new user |
-| POST | /api/users/login | Log in and receive a token |
-| GET | /api/users/{username}/profile | Retrieve user profile |
-| PUT | /api/users/{username}/profile | Update user profile |
+| Method | Endpoint                      | Description                         |
+|--------|-------------------------------|-------------------------------------|
+| POST   | /api/users/register           | Register a new user                 |
+| POST   | /api/users/login              | Log in and receive a token          |
+| GET    | /api/users/{username}/profile | Retrieve user profile               |
+| PUT    | /api/users/{username}/profile | Update user profile                 |
+| POST   | /api/media                    | Create a new media entry            |
+| GET    | /api/media                    | Retrieve all media entries          |
+| GET    | /api/media/{id}               | Retrieve info about a media entry   |
+| PUT    | /api/media/{id}               | Update information of a media entry |
+| DELETE | /api/media/{id}               | Delete a specific media entry       |
+
 
 
 ## Error Handling
@@ -94,7 +100,6 @@ A Postman collection (MRP_Postman_Collection.json) is also included for manual a
 
 ## Future Extensions
 
-- Media CRUD endpoints (/api/media)
 - Rating and comments system
 - Favorites and recommendations
 - Leaderboard of most active users

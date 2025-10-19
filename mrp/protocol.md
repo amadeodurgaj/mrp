@@ -83,6 +83,17 @@ The Postman collection was used to validate manual endpoint testing, ensuring en
 
 ---
 
+### **Media CRUD implementation (October 19, 2025)**
+
+**Commit:** cfacc99797d3aa6cbf6c94a8e66301b976f05d1f
+**Message:** Added Media CRUD integration  
+**Description:**  
+The whole logic of the media APIs was given with routing, services to call the SQL commands and the controllers to do the 
+heavy business logic. In addition, the corresponding integration tests were also created.
+
+---
+
+
 ## Technical Decisions
 
 - **Language:** Java 24
