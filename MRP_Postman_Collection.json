@@ -90,7 +90,7 @@
           "request": {
             "method": "PUT",
             "url": {
-              "raw": "http://localhost:8080/api/users/1/profile",
+              "raw": "http://localhost:8080/api/users/user1/profile",
               "host": [
                 "http://localhost:8080"
               ],
