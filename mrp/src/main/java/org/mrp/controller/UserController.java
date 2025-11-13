@@ -14,10 +14,16 @@ import java.util.Map;
 import java.util.UUID;
 
 public class UserController {
-    private final UserService userService = new UserService();
+    private final UserService userService;
 
-    private final JSONUtil jsonUtil = new JSONUtil();
-    private final HttpMethodValidatorUtil validatorUtil = new HttpMethodValidatorUtil();
+    private final JSONUtil jsonUtil;
+    private final HttpMethodValidatorUtil validatorUtil;
+
+    public UserController(UserService userService, JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
+        this.userService = userService;
+        this.jsonUtil = jsonUtil;
+        this.validatorUtil = validatorUtil;
+    }
 
     private record AuthContext(User authUser, String requestedUsername) {}
 

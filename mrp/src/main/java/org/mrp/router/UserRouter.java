@@ -4,7 +4,11 @@ import com.sun.net.httpserver.HttpServer;
 import org.mrp.controller.UserController;
 
 public class UserRouter {
-    private final UserController userController = new UserController();
+    private final UserController userController;
+
+    public UserRouter(UserController userController) {
+        this.userController = userController;
+    }
 
     public void register(HttpServer server) {
         server.createContext("/api/users/register", userController::handleRegister);
