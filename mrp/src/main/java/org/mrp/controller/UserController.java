@@ -4,12 +4,12 @@ import org.mrp.exception.BadRequestException;
 import org.mrp.exception.ForbiddenAccessException;
 import org.mrp.model.User;
 import org.mrp.service.UserService;
+import org.mrp.util.AuthUtil;
 import org.mrp.util.HttpMethodValidatorUtil;
 import org.mrp.util.JSONUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,15 +17,15 @@ public class UserController {
     private final UserService userService;
 
     private final JSONUtil jsonUtil;
+    private final AuthUtil authUtil;
     private final HttpMethodValidatorUtil validatorUtil;
 
-    public UserController(UserService userService, JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
+    public UserController(UserService userService, AuthUtil authUtil , JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
         this.userService = userService;
         this.jsonUtil = jsonUtil;
+        this.authUtil = authUtil;
         this.validatorUtil = validatorUtil;
     }
-
-    private record AuthContext(User authUser, String requestedUsername) {}
 
     public void handleRegister(HttpExchange exchange) throws IOException {
         if (validatorUtil.require(exchange, "POST")) return;
@@ -71,14 +71,17 @@ public class UserController {
         if (validatorUtil.require(exchange, "GET")) return;
 
         try {
-            AuthContext ctx = authorizeAndExtract(exchange);
-            if (ctx == null) return;
+            User authUser = authUtil.requireUser(exchange);
+            if (authUser == null) return;
 
-            if (!ctx.requestedUsername().equals(ctx.authUser().getUsername())) {
+            String requestedUsername = extractUsernameFromPath(exchange);
+
+            if (!requestedUsername.equals(authUser.getUsername())) {
                 throw new ForbiddenAccessException();
             }
 
-            User user = userService.getUserByUsername(ctx.requestedUsername());
+            User user = userService.getUserByUsername(requestedUsername);
+
 
             jsonUtil.sendJson(exchange, 200, Map.of(
                     "username", user.getUsername(),
@@ -100,10 +103,12 @@ public class UserController {
         if (validatorUtil.require(exchange, "PUT")) return;
 
         try {
-            AuthContext ctx = authorizeAndExtract(exchange);
-            if (ctx == null) return;
+            User authUser = authUtil.requireUser(exchange);
+            if (authUser == null) return;
 
-            if (!ctx.requestedUsername().equals(ctx.authUser().getUsername())) {
+            String requestedUsername = extractUsernameFromPath(exchange);
+
+            if (!requestedUsername.equals(authUser.getUsername())) {
                 throw new ForbiddenAccessException();
             }
 
@@ -111,44 +116,35 @@ public class UserController {
             String email = (String) body.get("email");
             String favoriteGenre = (String) body.get("favoriteGenre");
 
-            boolean updated = userService.updateUserProfile(ctx.authUser().getId(), email, favoriteGenre);
+            boolean updated = userService.updateUserProfile(
+                    authUser.getId(),
+                    email,
+                    favoriteGenre
+            );
 
             if (updated) {
-                jsonUtil.sendJson(exchange, 200, Map.of("message", "Profile updated successfully"));
+                jsonUtil.sendJson(exchange, 200, Map.of(
+                        "message", "Profile updated successfully"
+                ));
             } else {
                 throw new BadRequestException("Failed to update profile");
             }
 
         } catch (ApiException e) {
-            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of(
+                    "error", e.getMessage()
+            ));
         }
     }
 
-
-    private AuthContext authorizeAndExtract(HttpExchange exchange) throws IOException, ApiException {
-        String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            jsonUtil.sendJson(exchange, 401, Map.of("error", "Missing or invalid Authorization header"));
-            return null;
+    private String extractUsernameFromPath(HttpExchange exchange) throws ApiException {
+        String[] parts = exchange.getRequestURI().getPath().split("/");
+        if (parts.length < 2) {
+            throw new BadRequestException("Invalid request path");
         }
-
-        String token = authHeader.substring("Bearer ".length()).trim();
-        User authUser = userService.getUserByToken(token);
-        if (authUser == null) {
-            jsonUtil.sendJson(exchange, 401, Map.of("error", "Invalid or expired token"));
-            return null;
-        }
-
-        URI uri = exchange.getRequestURI();
-        String[] pathParts = uri.getPath().split("/");
-        if (pathParts.length < 4) {
-            jsonUtil.sendJson(exchange, 400, Map.of("error", "Invalid request path"));
-            return null;
-        }
-
-        String requestedUsername = pathParts[pathParts.length - 2];
-        return new AuthContext(authUser, requestedUsername);
+        return parts[parts.length - 2];
     }
+
 
 
 }

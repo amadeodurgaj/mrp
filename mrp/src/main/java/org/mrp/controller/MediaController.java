@@ -3,6 +3,7 @@ package org.mrp.controller;
 import com.sun.net.httpserver.HttpExchange;
 import org.mrp.model.Media;
 import org.mrp.service.MediaService;
+import org.mrp.util.AuthUtil;
 import org.mrp.util.HttpMethodValidatorUtil;
 import org.mrp.util.JSONUtil;
 import org.mrp.exception.*;
@@ -13,17 +14,21 @@ import java.util.*;
 public class MediaController {
 
     private final MediaService mediaService;
+    private final AuthUtil authUtil;
     private final JSONUtil jsonUtil;
     private final HttpMethodValidatorUtil validatorUtil;
 
-    public MediaController(MediaService mediaService, JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
+    public MediaController(MediaService mediaService, AuthUtil authUtil ,JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
         this.mediaService = mediaService;
         this.jsonUtil = jsonUtil;
+        this.authUtil = authUtil;
         this.validatorUtil = validatorUtil;
     }
 
-    public void handleCreateMedia(HttpExchange exchange) throws IOException {
+    public void handleCreateMedia(HttpExchange exchange) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "POST")) return;
+
+        if (authUtil.requireUser(exchange) == null) return;
 
         try {
             Media media = jsonUtil.fromJson(exchange.getRequestBody(), Media.class);
@@ -34,8 +39,11 @@ public class MediaController {
         }
     }
 
-    public void handleGetAllMedia(HttpExchange exchange) throws IOException {
+    public void handleGetAllMedia(HttpExchange exchange) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "GET")) return;
+
+        if (authUtil.requireUser(exchange) == null) return;
+
 
         try {
             List<Media> list = mediaService.getAllMedia();
@@ -45,8 +53,10 @@ public class MediaController {
         }
     }
 
-    public void handleGetMediaById(HttpExchange exchange, int id) throws IOException {
+    public void handleGetMediaById(HttpExchange exchange, int id) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "GET")) return;
+
+        if (authUtil.requireUser(exchange) == null) return;
 
 
         try {
@@ -57,9 +67,10 @@ public class MediaController {
         }
     }
 
-    public void handleUpdateMedia(HttpExchange exchange, int id) throws IOException {
+    public void handleUpdateMedia(HttpExchange exchange, int id) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "PUT")) return;
 
+        if (authUtil.requireUser(exchange) == null) return;
 
         try {
             Media media = jsonUtil.fromJson(exchange.getRequestBody(), Media.class);
@@ -73,9 +84,10 @@ public class MediaController {
         }
     }
 
-    public void handleDeleteMedia(HttpExchange exchange, int id) throws IOException {
+    public void handleDeleteMedia(HttpExchange exchange, int id) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "DELETE")) return;
 
+        if (authUtil.requireUser(exchange) == null) return;
 
         try {
             boolean deleted = mediaService.deleteMedia(id);

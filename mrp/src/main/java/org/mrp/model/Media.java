@@ -1,6 +1,7 @@
 package org.mrp.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public class Media {
     private UUID creatorId;
     private LocalDateTime createdAt;
     private List<String> genres;
+    private List<Rating> ratings = new ArrayList<>();
 
     // Getters and setters
     public int getId() { return id; }
@@ -42,4 +44,19 @@ public class Media {
 
     public List<String> getGenres() { return genres; }
     public void setGenres(List<String> genres) { this.genres = genres; }
+
+    public List<Rating> getRatings() { return ratings; }
+    public void setRatings(List<Rating> ratings) { this.ratings = ratings; }
+
+    public double getAverageScore() {
+        if (ratings == null || ratings.isEmpty()) {
+            return 0.0;
+        }
+        return ratings.stream()
+                .filter(Rating::isConfirmed)
+                .mapToInt(Rating::getStars)
+                .average()
+                .orElse(0.0);
+    }
+
 }

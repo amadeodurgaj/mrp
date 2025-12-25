@@ -2,6 +2,7 @@ package org.mrp.router;
 
 import com.sun.net.httpserver.HttpServer;
 import org.mrp.controller.MediaController;
+import org.mrp.exception.ApiException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,17 +25,47 @@ public class MediaRouter {
             if (matcher.matches()) {
                 int id = Integer.parseInt(matcher.group(1));
                 switch (method.toUpperCase()) {
-                    case "GET" -> mediaController.handleGetMediaById(exchange, id);
-                    case "PUT" -> mediaController.handleUpdateMedia(exchange, id);
-                    case "DELETE" -> mediaController.handleDeleteMedia(exchange, id);
+                    case "GET" -> {
+                        try {
+                            mediaController.handleGetMediaById(exchange, id);
+                        } catch (ApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    case "PUT" -> {
+                        try {
+                            mediaController.handleUpdateMedia(exchange, id);
+                        } catch (ApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    case "DELETE" -> {
+                        try {
+                            mediaController.handleDeleteMedia(exchange, id);
+                        } catch (ApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     default -> exchange.sendResponseHeaders(405, -1);
                 }
                 return;
             }
 
             switch (method.toUpperCase()) {
-                case "GET" -> mediaController.handleGetAllMedia(exchange);
-                case "POST" -> mediaController.handleCreateMedia(exchange);
+                case "GET" -> {
+                    try {
+                        mediaController.handleGetAllMedia(exchange);
+                    } catch (ApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                case "POST" -> {
+                    try {
+                        mediaController.handleCreateMedia(exchange);
+                    } catch (ApiException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 default -> exchange.sendResponseHeaders(405, -1);
             }
         });
