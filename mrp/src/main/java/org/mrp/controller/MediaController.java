@@ -74,11 +74,12 @@ public class MediaController {
     public void handleUpdateMedia(HttpExchange exchange, int id) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "PUT")) return;
 
-        if (authUtil.requireUser(exchange) == null) return;
+        User authUser = authUtil.requireUser(exchange);
+        if (authUser == null) return;
 
         try {
             Media media = jsonUtil.fromJson(exchange.getRequestBody(), Media.class);
-            boolean updated = mediaService.updateMedia(id, media);
+            boolean updated = mediaService.updateMedia(id, media, authUser.getId());
             jsonUtil.sendJson(exchange, updated ? 200 : 404, Map.of(
                     updated ? "message" : "error",
                     updated ? "Media updated successfully" : "Media not found"
@@ -91,10 +92,11 @@ public class MediaController {
     public void handleDeleteMedia(HttpExchange exchange, int id) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "DELETE")) return;
 
-        if (authUtil.requireUser(exchange) == null) return;
+        User authUser = authUtil.requireUser(exchange);
+        if (authUser == null) return;
 
         try {
-            boolean deleted = mediaService.deleteMedia(id);
+            boolean deleted = mediaService.deleteMedia(id, authUser.getId());
             jsonUtil.sendJson(exchange, deleted ? 200 : 404, Map.of(
                     deleted ? "message" : "error",
                     deleted ? "Media deleted" : "Media not found"

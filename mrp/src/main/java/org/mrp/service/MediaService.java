@@ -46,7 +46,20 @@ public class MediaService {
             }
         }
 
-        public boolean updateMedia(int id, Media media) throws ApiException {
+        public boolean updateMedia(int id, Media media, UUID requestingUserId) throws ApiException {
+
+            Media existing = null;
+
+            try {
+                existing = mediaRepository.findById(id).orElseThrow(() -> new BadRequestException("Media not found"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            if (!existing.getCreatorId().equals(requestingUserId)) {
+                throw new ForbiddenAccessExceptionMedia();
+            }
+
             try {
                 return mediaRepository.update(id, media);
             } catch (Exception e) {
@@ -54,7 +67,21 @@ public class MediaService {
             }
         }
 
-        public boolean deleteMedia(int id) throws ApiException {
+        public boolean deleteMedia(int id, UUID requestingUserId) throws ApiException {
+
+            Media existing = null;
+
+            try {
+                existing = mediaRepository.findById(id).orElseThrow(() -> new BadRequestException("Media not found"));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            if (!existing.getCreatorId().equals(requestingUserId)) {
+                throw new ForbiddenAccessExceptionMedia();
+            }
+
+
             try {
                 return mediaRepository.delete(id);
             } catch (Exception e) {
