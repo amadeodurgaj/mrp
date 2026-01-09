@@ -2,6 +2,8 @@ package org.mrp.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.mrp.model.Media;
+import org.mrp.model.User;
+import org.mrp.service.FavoriteService;
 import org.mrp.service.MediaService;
 import org.mrp.util.AuthUtil;
 import org.mrp.util.HttpMethodValidatorUtil;
@@ -14,12 +16,14 @@ import java.util.*;
 public class MediaController {
 
     private final MediaService mediaService;
+    private final FavoriteService favoriteService;
     private final AuthUtil authUtil;
     private final JSONUtil jsonUtil;
     private final HttpMethodValidatorUtil validatorUtil;
 
-    public MediaController(MediaService mediaService, AuthUtil authUtil ,JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
+    public MediaController(MediaService mediaService, FavoriteService favoriteService, AuthUtil authUtil ,JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
         this.mediaService = mediaService;
+        this.favoriteService = favoriteService;
         this.jsonUtil = jsonUtil;
         this.authUtil = authUtil;
         this.validatorUtil = validatorUtil;
@@ -99,4 +103,40 @@ public class MediaController {
             jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
     }
+
+    public void handleFavoriteMedia(HttpExchange exchange, int mediaId) throws IOException, ApiException {
+
+        User user = authUtil.requireUser(exchange);
+
+        if (validatorUtil.require(exchange, "POST")) return;
+
+
+        try {
+            favoriteService.favorite(user.getId(), mediaId);
+            jsonUtil.sendJson(exchange, 200, Map.of(
+                    "message", "Media favorited"
+            ));
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
+        }
+
+
+    }
+
+    public void handleUnfavoriteMedia(HttpExchange exchange, int mediaId) throws IOException, ApiException {
+
+        User user = authUtil.requireUser(exchange);
+
+        if (validatorUtil.require(exchange, "DELETE")) return;
+
+        try {
+            favoriteService.unfavorite(user.getId(), mediaId);
+            jsonUtil.sendJson(exchange, 200, Map.of(
+                    "message", "Favorite removed!"
+            ));
+        } catch (ApiException e) {
+            jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
+        }
+    }
+
 }

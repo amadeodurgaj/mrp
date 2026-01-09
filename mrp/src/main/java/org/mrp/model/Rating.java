@@ -1,41 +1,54 @@
 package org.mrp.model;
 
-
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Rating {
+
     private int id;
-    private Media media;
-    private User user;
-    private int stars;
+    private int mediaId;
+    private UUID userId;
+    private int stars; // 1–5
     private String comment;
     private boolean confirmed;
     private LocalDateTime createdAt;
-    private List<User> likedBy;
+    private List<UUID> likedByUsers = new ArrayList<>();
 
-    public List<User> getLikedBy() {
-        return likedBy;
+    public int getId() {
+        return id;
     }
 
-    public void setLikedBy(List<User> likedBy) {
-        this.likedBy = likedBy;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public int getMediaId() {
+        return mediaId;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setMediaId(int mediaId) {
+        this.mediaId = mediaId;
     }
 
-    public boolean isConfirmed() {
-        return confirmed;
+    public UUID getUserId() {
+        return userId;
     }
 
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public int getStars() {
+        return stars;
+    }
+
+    public void setStars(int stars) {
+        if (stars < 1 || stars > 5) {
+            throw new IllegalArgumentException("Stars must be between 1 and 5");
+        }
+        this.stars = stars;
     }
 
     public String getComment() {
@@ -46,35 +59,39 @@ public class Rating {
         this.comment = comment;
     }
 
-    public int getStars() {
-        return stars;
+    public boolean isConfirmed() {
+        return confirmed;
     }
 
-    public void setStars(int stars) {
-        this.stars = stars;
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
     }
 
-    public User getUser() {
-        return user;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public Media getMedia() {
-        return media;
+    public List<UUID> getLikedByUsers() {
+        return likedByUsers;
     }
 
-    public void setMedia(Media media) {
-        this.media = media;
+    public void setLikedByUsers(List<UUID> likedByUsers) {
+        this.likedByUsers = likedByUsers;
     }
 
-    public int getId() {
-        return id;
+    // ===== Convenience Methods =====
+
+    public int getLikeCount() {
+        return likedByUsers.size();
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void like(UUID userId) {
+        if (!likedByUsers.contains(userId)) {
+            likedByUsers.add(userId);
+        }
     }
 }

@@ -22,6 +22,31 @@ public class MediaRouter {
 
             Matcher matcher = Pattern.compile("^/api/media/(\\d+)$").matcher(path);
 
+            Matcher favoriteMatcher = Pattern.compile("^/api/media/(\\d+)/favorite$").matcher(path);
+
+            if (favoriteMatcher.matches()) {
+                int mediaId = Integer.parseInt(favoriteMatcher.group(1));
+
+                switch (method.toUpperCase()) {
+                    case "POST" -> {
+                        try {
+                            mediaController.handleFavoriteMedia(exchange, mediaId);
+                        } catch (ApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    case "DELETE" -> {
+                        try {
+                            mediaController.handleUnfavoriteMedia(exchange, mediaId);
+                        } catch (ApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    default -> exchange.sendResponseHeaders(405, -1);
+                }
+                return;
+            }
+
             if (matcher.matches()) {
                 int id = Integer.parseInt(matcher.group(1));
                 switch (method.toUpperCase()) {
@@ -70,4 +95,5 @@ public class MediaRouter {
             }
         });
     }
+
 }

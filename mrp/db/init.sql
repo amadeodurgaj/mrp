@@ -36,6 +36,7 @@ CREATE TABLE ratings (
         comment TEXT,
         confirmed BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT unique_user_media_rating UNIQUE (media_id, user_id),
         FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

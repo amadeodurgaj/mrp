@@ -2,7 +2,11 @@ package org.mrp.controller;
 import org.mrp.exception.ApiException;
 import org.mrp.exception.BadRequestException;
 import org.mrp.exception.ForbiddenAccessException;
+import org.mrp.model.Media;
+import org.mrp.model.Rating;
 import org.mrp.model.User;
+import org.mrp.service.FavoriteService;
+import org.mrp.service.RatingService;
 import org.mrp.service.UserService;
 import org.mrp.util.AuthUtil;
 import org.mrp.util.HttpMethodValidatorUtil;
@@ -10,18 +14,23 @@ import org.mrp.util.JSONUtil;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class UserController {
-    private final UserService userService;
 
+    private final UserService userService;
+    private final RatingService ratingService;
+    private final FavoriteService favoriteService;
     private final JSONUtil jsonUtil;
     private final AuthUtil authUtil;
     private final HttpMethodValidatorUtil validatorUtil;
 
-    public UserController(UserService userService, AuthUtil authUtil , JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
+    public UserController(UserService userService, RatingService ratingService, FavoriteService favoriteService ,AuthUtil authUtil , JSONUtil jsonUtil, HttpMethodValidatorUtil validatorUtil) {
         this.userService = userService;
+        this.ratingService = ratingService;
+        this.favoriteService = favoriteService;
         this.jsonUtil = jsonUtil;
         this.authUtil = authUtil;
         this.validatorUtil = validatorUtil;
@@ -136,6 +145,42 @@ public class UserController {
             ));
         }
     }
+
+    public void handleGetRatingHistory(HttpExchange exchange) throws IOException, ApiException {
+
+        if (validatorUtil.require(exchange, "GET")) return;
+
+        User authUser = authUtil.requireUser(exchange);
+        if (authUser == null) return;
+
+        String requestedUsername = extractUsernameFromPath(exchange);
+
+        if (!requestedUsername.equals(authUser.getUsername())) {
+            throw new ForbiddenAccessException();
+        }
+
+        List<Rating> ratings = ratingService.getRatingHistory(authUser.getUsername());
+        jsonUtil.sendJson(exchange, 200, ratings);
+    }
+
+    public void handleGetFavorites(HttpExchange exchange) throws IOException, ApiException {
+
+        if (validatorUtil.require(exchange, "GET")) return;
+
+        User authUser = authUtil.requireUser(exchange);
+        if (authUser == null) return;
+
+        String requestedUsername = extractUsernameFromPath(exchange);
+
+        if (!requestedUsername.equals(authUser.getUsername())) {
+            throw new ForbiddenAccessException();
+        }
+
+        List<Media> favorites = favoriteService.getFavorites(authUser.getUsername());
+        jsonUtil.sendJson(exchange, 200, favorites);
+    }
+
+
 
     private String extractUsernameFromPath(HttpExchange exchange) throws ApiException {
         String[] parts = exchange.getRequestURI().getPath().split("/");
