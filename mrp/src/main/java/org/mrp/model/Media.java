@@ -17,7 +17,6 @@ public class Media {
     private List<String> genres;
     private List<Rating> ratings = new ArrayList<>();
 
-    // Getters and setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

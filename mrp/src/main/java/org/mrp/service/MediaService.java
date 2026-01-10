@@ -48,17 +48,7 @@ public class MediaService {
 
         public boolean updateMedia(int id, Media media, UUID requestingUserId) throws ApiException {
 
-            Media existing = null;
-
-            try {
-                existing = mediaRepository.findById(id).orElseThrow(() -> new BadRequestException("Media not found"));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
-            if (!existing.getCreatorId().equals(requestingUserId)) {
-                throw new ForbiddenAccessExceptionMedia();
-            }
+            findExistingMedia(id, requestingUserId);
 
             try {
                 return mediaRepository.update(id, media);
@@ -69,6 +59,17 @@ public class MediaService {
 
         public boolean deleteMedia(int id, UUID requestingUserId) throws ApiException {
 
+            findExistingMedia(id, requestingUserId);
+
+            try {
+                return mediaRepository.delete(id);
+            } catch (Exception e) {
+                throw new InternalServerException(e);
+            }
+        }
+
+        private void findExistingMedia(int id, UUID requestingUserId) throws ApiException {
+
             Media existing = null;
 
             try {
@@ -79,13 +80,6 @@ public class MediaService {
 
             if (!existing.getCreatorId().equals(requestingUserId)) {
                 throw new ForbiddenAccessExceptionMedia();
-            }
-
-
-            try {
-                return mediaRepository.delete(id);
-            } catch (Exception e) {
-                throw new InternalServerException(e);
             }
         }
 }

@@ -40,14 +40,14 @@ public class RatingController {
                     userId,
                     rating
             );
+            jsonUtil.sendJson(exchange, 201, Map.of(
+                    "message", "Rating created",
+                    "ratingId", created.getId()
+            ));
         } catch (ApiException e) {
             jsonUtil.sendJson(exchange, e.getStatusCode(), Map.of("error", e.getMessage()));
         }
 
-        jsonUtil.sendJson(exchange, 201, Map.of(
-                "message", "Rating created",
-                "ratingId", created.getId()
-        ));
     }
 
     public void handleUpdateRating(HttpExchange exchange, int ratingId, UUID userId) throws IOException {

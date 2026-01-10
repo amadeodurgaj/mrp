@@ -32,10 +32,13 @@ public class MediaController {
     public void handleCreateMedia(HttpExchange exchange) throws IOException, ApiException {
         if (validatorUtil.require(exchange, "POST")) return;
 
-        if (authUtil.requireUser(exchange) == null) return;
+        User authUser = authUtil.requireUser(exchange);
+
+        if (authUser == null) return;
 
         try {
             Media media = jsonUtil.fromJson(exchange.getRequestBody(), Media.class);
+            media.setCreatorId(authUser.getId());
             Media created = mediaService.createMedia(media);
             jsonUtil.sendJson(exchange, 201, Map.of("message", "Media created", "id", created.getId()));
         } catch (ApiException e) {

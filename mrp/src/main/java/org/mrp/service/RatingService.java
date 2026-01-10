@@ -9,15 +9,15 @@ import java.util.UUID;
 
 public class RatingService {
 
-    private final RatingRepository repository;
+    private final RatingRepository ratingRepository;
 
-    public RatingService(RatingRepository repository) {
-        this.repository = repository;
+    public RatingService(RatingRepository ratingRepository) {
+        this.ratingRepository = ratingRepository;
     }
 
     public Rating createRating(int mediaId, UUID userId, Rating rating) throws ApiException {
 
-        if (repository.existsByMediaAndUser(mediaId, userId)) {
+        if (ratingRepository.existsByMediaAndUser(mediaId, userId)) {
             throw new BadRequestException("User has already rated this media");
         }
 
@@ -25,12 +25,12 @@ public class RatingService {
         rating.setUserId(userId);
         rating.setConfirmed(false);
 
-        return repository.insert(rating);
+        return ratingRepository.insert(rating);
     }
 
     public List<Rating> getRatingHistory(String username) throws ApiException {
         try {
-            return repository.findRatingByUserId(username);
+            return ratingRepository.findRatingByUserId(username);
         } catch (Exception e) {
             throw new InternalServerException(e);
         }
@@ -38,41 +38,41 @@ public class RatingService {
 
 
     public void updateRating(int ratingId, UUID userId, Rating updated) throws ApiException {
-        Rating existing = repository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
+        Rating existing = ratingRepository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
 
         if (!existing.getUserId().equals(userId)) {
             throw new ForbiddenAccessException();
         }
 
-        repository.update(ratingId, updated);
+        ratingRepository.update(ratingId, updated);
     }
 
     public void deleteRating(int ratingId, UUID userId) throws ApiException{
-        Rating existing = repository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
+        Rating existing = ratingRepository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
 
         if (!existing.getUserId().equals(userId)) {
             throw new ForbiddenAccessException();
         }
 
-        repository.delete(ratingId);
+        ratingRepository.delete(ratingId);
     }
 
     public void confirmRating(int ratingId, UUID userId) throws ApiException {
-        Rating existing = repository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
+        Rating existing = ratingRepository.findById(ratingId).orElseThrow(() -> new BadRequestException("Rating not found"));
 
         if (!existing.getUserId().equals(userId)) {
             throw new ForbiddenAccessException();
         }
 
-        repository.confirm(ratingId);
+        ratingRepository.confirm(ratingId);
     }
 
     public void likeRating(int ratingId, UUID userId) throws ApiException {
 
-        if (repository.hasUserLiked(ratingId, userId)) {
+        if (ratingRepository.hasUserLiked(ratingId, userId)) {
             throw new ForbiddenAccessException();
         }
 
-        repository.like(ratingId, userId);
+        ratingRepository.like(ratingId, userId);
     }
 }
