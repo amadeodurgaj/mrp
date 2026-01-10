@@ -9,6 +9,7 @@ import org.mrp.repository.MediaRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mrp.repository.RatingRepository;
 
 import java.util.*;
 
@@ -20,6 +21,9 @@ class MediaServiceTest {
 
     @Mock
     private MediaRepository mediaRepository;
+
+    @Mock
+    private RatingRepository ratingRepository;
 
     @InjectMocks
     private MediaService mediaService;
@@ -61,11 +65,14 @@ class MediaServiceTest {
     @Test
     void getMediaById_success() throws Exception {
         when(mediaRepository.findById(1)).thenReturn(Optional.of(media));
+        when(ratingRepository.getAverageRatingForMedia(1)).thenReturn(Optional.of(3.0));
 
         Media result = mediaService.getMediaById(1);
 
         assertEquals(media, result);
+        assertEquals(3.0, result.getAverageRating());
     }
+
 
     @Test
     void getMediaById_notFound_throwsBadRequest() throws Exception {
@@ -78,10 +85,12 @@ class MediaServiceTest {
     @Test
     void getAllMedia_success() throws Exception {
         when(mediaRepository.findAll()).thenReturn(List.of(media));
+        when(ratingRepository.getAverageRatingForMedia(media.getId())).thenReturn(Optional.of(4.5));
 
         List<Media> result = mediaService.getAllMedia();
 
         assertEquals(1, result.size());
+        assertEquals(4.5, result.getFirst().getAverageRating());
     }
 
 

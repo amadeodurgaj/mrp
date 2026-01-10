@@ -15,10 +15,7 @@ public class FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final MediaRepository mediaRepository;
 
-    public FavoriteService(
-            FavoriteRepository favoriteRepository,
-            MediaRepository mediaRepository
-    ) {
+    public FavoriteService(FavoriteRepository favoriteRepository, MediaRepository mediaRepository) {
         this.favoriteRepository = favoriteRepository;
         this.mediaRepository = mediaRepository;
     }

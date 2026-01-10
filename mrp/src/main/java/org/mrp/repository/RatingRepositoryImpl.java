@@ -251,6 +251,34 @@ public class RatingRepositoryImpl implements RatingRepository {
         }
     }
 
+    @Override
+    public Optional<Double> getAverageRatingForMedia(int mediaId) {
+        String sql = """
+        SELECT ROUND(AVG(stars), 1) AS avg_rating
+        FROM ratings
+        WHERE media_id = ?
+    """;
+
+        try (Connection conn = dbUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, mediaId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next() && rs.getDouble("avg_rating") != 0) {
+                return Optional.of(rs.getDouble("avg_rating"));
+            }
+
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to calculate average rating", e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     private Rating mapRating(ResultSet rs) throws SQLException {
         Rating rating = new Rating();
         rating.setId(rs.getInt("id"));

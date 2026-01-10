@@ -20,14 +20,15 @@ public class RouteRegister {
     UserRepository userRepository = new UserRepositoryImpl();
     UserService userService = new UserService(userRepository);
 
+    RatingRepository ratingRepository = new RatingRepositoryImpl();
+    RatingService ratingService = new RatingService(ratingRepository);
+
     MediaRepository mediaRepository = new MediaRepositoryImpl();
-    MediaService mediaService = new MediaService(mediaRepository);
+    MediaService mediaService = new MediaService(mediaRepository, ratingRepository);
 
     FavoriteRepository favoriteRepository = new FavoriteRepositoryImpl();
     FavoriteService favoriteService = new FavoriteService(favoriteRepository, mediaRepository);
 
-    RatingRepository ratingRepository = new RatingRepositoryImpl();
-    RatingService ratingService = new RatingService(ratingRepository);
 
 
     JSONUtil jsonUtil = new JSONUtil();

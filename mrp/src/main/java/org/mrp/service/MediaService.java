@@ -3,20 +3,19 @@ package org.mrp.service;
 import org.mrp.model.Media;
 import org.mrp.exception.*;
 import org.mrp.repository.MediaRepository;
-import org.mrp.repository.MediaRepositoryImpl;
+import org.mrp.repository.RatingRepository;
+
 import java.util.*;
 
 public class MediaService {
 
 
         private final MediaRepository mediaRepository;
+        private final RatingRepository ratingRepository;
 
-        public MediaService() {
-            this(new MediaRepositoryImpl());
-        }
-
-        public MediaService(MediaRepository mediaRepository) {
+        public MediaService(MediaRepository mediaRepository, RatingRepository ratingRepository) {
             this.mediaRepository = mediaRepository;
+            this.ratingRepository = ratingRepository;
         }
 
         public Media createMedia(Media media) throws ApiException {
@@ -29,8 +28,14 @@ public class MediaService {
 
         public Media getMediaById(int id) throws ApiException {
             try {
-                return mediaRepository.findById(id)
-                        .orElseThrow(() -> new BadRequestException("Media not found"));
+
+                Media media = mediaRepository.findById(id).orElseThrow(() -> new BadRequestException("Media not found"));
+
+                double avg = ratingRepository.getAverageRatingForMedia(id).orElse(0.0);
+
+                media.setAverageRating(avg);
+                return media;
+
             } catch (ApiException e) {
                 throw e;
             } catch (Exception e) {
@@ -40,7 +45,15 @@ public class MediaService {
 
         public List<Media> getAllMedia() throws ApiException {
             try {
-                return mediaRepository.findAll();
+                List<Media> mediaList = mediaRepository.findAll();
+
+                for (Media media : mediaList) {
+                    double avg = ratingRepository.getAverageRatingForMedia(media.getId()).orElse(0.0);
+                    media.setAverageRating(avg);
+                }
+
+                return mediaList;
+
             } catch (Exception e) {
                 throw new InternalServerException(e);
             }

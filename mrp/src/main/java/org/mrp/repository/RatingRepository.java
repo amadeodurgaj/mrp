@@ -28,5 +28,7 @@ public interface RatingRepository {
 
     List<Rating> findRatingByUserId(String username);
 
+    Optional<Double> getAverageRatingForMedia(int mediaId);
+
 
 }

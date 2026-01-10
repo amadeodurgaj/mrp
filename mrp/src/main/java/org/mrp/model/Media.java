@@ -16,6 +16,7 @@ public class Media {
     private LocalDateTime createdAt;
     private List<String> genres;
     private List<Rating> ratings = new ArrayList<>();
+    private Double averageRating;
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -57,5 +58,14 @@ public class Media {
                 .average()
                 .orElse(0.0);
     }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
 
 }
