@@ -1,7 +1,7 @@
 # Media Ratings Platform (MRP) - Development Protocol
 
 Author: Amadeo Durgaj  
-Date: October 2025  
+Date: January 2026  
 Branch: Test
 
 ---
@@ -93,8 +93,85 @@ heavy business logic. In addition, the corresponding integration tests were also
 
 ---
 
+### Structural Consolidation & Repository Layer (October–November 2025)
 
+**Commit:** 249073591d8c19d57488272d0c634dca568f4d6a
+**Message:** Implementation with Repositories for SQL calls
 
+**Description:**  
+A dedicated **Repository layer** was introduced to encapsulate all SQL operations.  
+This finalized the transition to a clean **Controller → Service → Repository** architecture.
+
+---
+
+**Commit:** 53c366b101c0cf152d52c13a969f5ec328e86774
+**Message:** Refactoring to have user and media follow the same injection and logics
+
+**Description:**  
+User and Media domains were refactored to follow **identical dependency injection and architectural patterns**:
+- Constructor-based injection of repositories
+- Unified utility usage (JSON handling, validation, auth)
+- Shared exception and response handling
+
+This eliminated architectural inconsistencies between domains and improved overall cohesion.
+
+---
+
+### Authentication & Authorization Hardening (December 2025)
+
+**Commit:** eb24b9f79aa1221a48e1fbdee77a40d7ba5e682b  
+**Message:** Added AuthUtil and complete integration of global token control – removed integration tests
+
+**Description:**  
+A centralized **token-based authorization system** was fully implemented using `AuthUtil`.
+
+---
+
+### Ratings, Favorites & User-Scoped Listings (January 2026)
+
+**Commit:** 14e12db848a3d64431e680d43bd7dacb9dd20154
+**Message:** Added functionalities like Rating, Favorites and listing of favorites / ratings for each user
+
+**Description:**  
+The full **rating and favorite system** was implemented.
+
+---
+
+### Media Ownership & Access Control Enforcement (January 2026)
+
+**Commit:** `040e42c59ef8e48c240f683c42302cc1b7c6124b`  
+**Message:** Fortified media ownership logic
+
+**Description:**  
+Strict **media ownership enforcement** was added:
+- Only the creator of a media entry may update or delete it
+- Ownership validation occurs in the **service layer**
+- Unauthorized actions return proper HTTP 403 responses
+
+This prevents horizontal privilege escalation and ensures rule compliance.
+
+---
+
+### Unit Testing & Stability Improvements (January 2026)
+
+**Commit:** `04ec313323ffec1efae97824569318b95ed7adba`  
+**Message:** Added Unit Tests and refactored problems found by unit testing
+
+**Description:**  
+A dedicated **unit testing phase** focused on core business logic:
+
+Covered areas:
+- Authorization and ownership validation
+- Rating uniqueness constraints
+- Favorite add/remove idempotency
+- Exception handling and edge cases
+
+During this phase:
+- Multiple logic flaws were discovered and corrected
+- Code paths were simplified where tests exposed ambiguity
+- Defensive programming practices were strengthened
+
+---
 
 ## Technical Decisions
 
@@ -105,6 +182,12 @@ heavy business logic. In addition, the corresponding integration tests were also
 - **Error Handling:** Custom exception system mapping to HTTP response codes
 - **Architecture:** Controller–Service–Model separation for SRP compliance
 - **Version Control:** Git (branch: `Test`)
+- **Authorization:** Centralized Bearer token validation via `AuthUtil`
+- **Architecture:** Strict Controller–Service–Repository separation
+- **Data Integrity:** Ownership and uniqueness enforced at service level
+- **Testing Strategy:** Unit tests prioritized over insecure integration tests
+- **Error Handling:** Typed exceptions mapped to HTTP status codes
+- **API Validation:** State-consistent behavior for ratings and favorites
 
 ---
 
@@ -117,30 +200,41 @@ heavy business logic. In addition, the corresponding integration tests were also
 | Repeated HTTP method checks | Implemented `HttpMethodValidator` utility for clean validation |
 | Maintaining clean routing | Moved endpoint definitions from `App.java` into a dedicated `RouteRegistrar` |
 | Integration testing issues (server not running) | Added server lifecycle management to ensure tests connect to a live instance |
-
+| Unauthorized media modification | Creator checks enforced in service layer |
+| Duplicate ratings or favorites | Existence validation before insert/delete |
+| Token misuse across endpoints | Centralized authorization validation |
+| Hard-to-test SQL logic | Repository abstraction enabled isolation |
+| Hidden edge cases | Unit tests exposed and corrected them |
 ---
 
 ## Final State
 
 At the end of development:
-- The server runs successfully at `http://localhost:8080`
-- User registration, login, and profile management are functional
-- Database schema is stable and normalized
-- Integration tests pass successfully
-- Code complies with the required software architecture principles
+- All **mandatory MRP features** are implemented
+- Token-based authorization is enforced globally
+- Media ownership rules are strictly validated
+- Ratings, favorites, and moderation work as intended
+- User-specific history endpoints are functional
+- Business logic is covered by unit tests
+- The system is **stable, secure, and specification-compliant**
 
 ---
 
 ## Estimated Time Tracking
 
-| Task                                  | Date | Estimated Hours |
-|---------------------------------------|------|-----------------|
+| Task                                  | Date   | Estimated Hours |
+|---------------------------------------|--------|-----------------|
 | Initial setup and DB connection       | Sep 17 | 4h              |
 | User registration & Postman testing   | Sep 30 | 4h              |
 | Refactoring for SRP & LSP             | Sep 30 | 2h              |
-| User get and edit profile integration | Oct 4 | 4h              |
+| User get and edit profile integration | Oct 4  | 4h              |
 | Exception system and refactor         | Oct 18 | 3h              |
 | Integration tests and documentation   | Oct 19 | 3h              |
 | Addition of Media CRUD                | Oct 19 | 3h              |
-| **Total**                             |  | **23 hours**    |
+| Repository refactor           | Nov 10 – Nov 13, 2025       | 3h              |
+| Auth & token enforcement     | Dec 25, 2025                | 3h              |
+| Ratings & favorites system   | Jan 9, 2026                 | 4h              |
+| Ownership & access control   | Jan 9, 2026                 | 2h              |
+| Unit tests & bug fixes       | Jan 10, 2026                | 3h              |
+| **Total**                             |        | **38 hours**     |
 

@@ -1,229 +1,700 @@
 {
   "info": {
-    "name": "MRP Full API Collection (COMPLETE + FIXED)",
+    "_postman_id": "2f8e38a1-522f-4700-9f81-ff08d01a7961",
+    "name": "MRP Projekt",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "_exporter_id": "48920717",
+    "_collection_link": "https://amadeodurgaj-7005209.postman.co/workspace/Amadeo-Durgaj's-Workspace~f1bf13b2-be62-45cf-87e2-d03d0b1c1d8b/collection/48920717-2f8e38a1-522f-4700-9f81-ff08d01a7961?action=share&source=collection_link&creator=48920717"
   },
   "item": [
     {
-      "name": "Auth",
-      "item": [
-        {
-          "name": "Register User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/users/register",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "register"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"amadeo\",\n  \"password\": \"pass123\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
             }
           }
         },
-        {
-          "name": "Login User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/users/login",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "login"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
-            }
-          }
+        "url": {
+          "raw": "{{baseURL}}/api/users/register",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "register"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "User",
-      "item": [
+      "name": "Login User",
+      "event": [
         {
-          "name": "Get Profile",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/users/user1/profile",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "profile"
-              ]
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "let jsonData;",
+              "try {",
+              "    jsonData = pm.response.json();",
+              "} catch (e) {",
+              "    jsonData = null;",
+              "    console.error(\"Response is not valid JSON\");",
+              "}",
+              "",
+              "if (jsonData && typeof jsonData.token === 'string' && jsonData.token.length > 0) {",
+              "    pm.environment.set('token', jsonData.token);",
+              "    console.log(\"Token saved to global variable\");",
+              "}",
+              "",
+              "pm.test(\"Token field exists and is not empty\", function () {",
+              "    pm.expect(jsonData).to.not.be.null;",
+              "    pm.expect(jsonData).to.have.property('token');",
+              "    pm.expect(jsonData.token).to.be.a('string').and.not.be.empty;",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"amadeo\",\n  \"password\": \"pass123\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
             }
           }
         },
-        {
-          "name": "Update Profile",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "http://localhost:8080/api/users/user1/profile",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "users",
-                "1",
-                "profile"
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user1@example.com\",\n  \"favoriteGenre\": \"sci-fi\"\n}"
-            }
-          }
+        "url": {
+          "raw": "{{baseURL}}/api/users/login",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "login"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "Media",
-      "item": [
-        {
-          "name": "Create Media Entry",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "http://localhost:8080/api/media",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Inception\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}"
+      "name": "Get Profile",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
             }
-          }
+          ]
         },
-        {
-          "name": "Delete Media Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Media Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Inception Updated\",\n  \"description\": \"Updated description\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"action\"\n  ],\n  \"ageRestriction\": 16\n}"
-            }
-          }
-        },
-        {
-          "name": "Get Media by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/media/1",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media",
-                "1"
-              ]
-            },
-            "header": []
-          }
-        },
-        {
-          "name": "Get all media",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "http://localhost:8080/api/media",
-              "host": [
-                "http://localhost:8080"
-              ],
-              "path": [
-                "api",
-                "media"
-              ]
-            },
-            "header": []
-          }
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/users/amadeo/profile",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "amadeo",
+            "profile"
+          ]
         }
-      ]
+      },
+      "response": []
+    },
+    {
+      "name": "Update Profile",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"newmail@example.com\",\n  \"favoriteGenre\": \"drama\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/users/amadeo/profile",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "amadeo",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Media",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Dexter: Resurrection\",\n  \"description\": \"A science fiction thriller about shared dreaming.\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2025,\n  \"ageRestriction\": 16,\n  \"creatorId\": \"bbf7e002-ff25-4a2d-b6fc-073c3cdd3688\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Media",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Media by ID",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/10",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            "10"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Favorite Media",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/8/favorite",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            "8",
+            "favorite"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Favorite",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/8/favorite",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            "8",
+            "favorite"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Media by ID",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Dexter: New Blood\",\n  \"description\": \"Updated description.\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2008,\n  \"ageRestriction\": 16\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/12",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            "12"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Media",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/media/8",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "media",
+            "8"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Rate Media",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stars\": 4,\n  \"comment\": \"Pretty good\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/ratings/media/8",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "ratings",
+            "media",
+            "8"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Rating",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stars\": 4,\n  \"comment\": \"Updated comment\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/ratings/2",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "ratings",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Rating",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/ratings/2",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "ratings",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Confirm Comment",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/ratings/4/confirm",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "ratings",
+            "4",
+            "confirm"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Like Rating",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/api/ratings/4/like",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "ratings",
+            "4",
+            "like"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Favorites",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/users/amadeo/favorites",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "amadeo",
+            "favorites"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Ratings",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseURL}}/api/users/amadeo/ratings",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "amadeo",
+            "ratings"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "",
+      "type": "default"
     }
   ]
 }

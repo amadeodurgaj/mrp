@@ -5,106 +5,148 @@ Other steps are shown in the Running Application section.
 
 The Media Ratings Platform (MRP) is a standalone Java application that implements a RESTful HTTP API for managing users, media entries, ratings, and favorites. It is designed to serve as the backend for potential web or mobile frontends.
 
+---
+
 ## Overview
 
 MRP allows users to:
 - Register and log in using unique credentials
-- View and update their profiles
-- Create, update, delete, and rate media entries
-- Like other users' ratings
-- Mark media as favorites
-- Retrieve recommendations based on rating history
+- View and update their user profile
+- Create, update, and delete media entries
+- Rate media entries (1–5 stars) with optional comments
+- Edit or delete their own ratings
+- Like other users’ ratings
+- Mark and unmark media entries as favorites
+- View personal rating history and favorite lists
+- Receive recommendations based on rating behavior and content similarity
 
-The server is built using the built-in Java HTTP server (com.sun.net.httpserver.HttpServer) and connects to a PostgreSQL database for persistent storage.
+The server is built using Java’s built-in HTTP server  
+(`com.sun.net.httpserver.HttpServer`) and uses **PostgreSQL** for persistent storage.
+
+---
 
 ## Features
 
-- RESTful API endpoints following HTTP specifications
-- Token-based user authentication
-- Modular routing via dedicated router classes
-- Custom exception hierarchy for clean error handling
-- Centralized HTTP method validation (HttpMethodValidator)
-- Middleware system supporting logging and authentication
-- UUID-based user IDs for scalable, distributed compatibility
-- Integration tests using JUnit and the official Postman collection
+- RESTful API following HTTP specifications
+- Token-based authentication using Bearer tokens
+- Centralized authorization via `AuthUtil`
+- Strict Controller–Service–Repository architecture
+- Custom exception hierarchy with proper HTTP status mapping
+- Centralized HTTP method validation (`HttpMethodValidator`)
+- Middleware-style request processing (authentication, logging)
+- Ownership enforcement for media and ratings
+- Duplicate-safe behavior for ratings and favorites
+- UUID-based user IDs for scalable and distributed compatibility
+- Unit tests covering core business logic
+- Official Postman collection for manual and automated testing
 
+---
 
 ## Database Schema
 
-| Table Name   | Description |
-|---------------|-------------|
-| **users** | Stores registered users (UUID primary key, login credentials, profile info) |
-| **media** | Represents media entries (movies, series, games) created by users |
-| **media_genres** | Many-to-many link between media and genres |
-| **ratings** | Contains user ratings (1–5 stars) and optional comments for media |
+| Table Name       | Description |
+|------------------|-------------|
+| **users**        | Stores registered users (UUID primary key, credentials, profile data) |
+| **media**        | Media entries (movies, series, games) created by users |
+| **media_genres** | Many-to-many relationship between media and genres |
+| **ratings**      | User ratings (1–5 stars) with optional comments and moderation flag |
 | **rating_likes** | Tracks which users liked which ratings |
-| **favorites** | Maps users to their favorite media entries |
+| **favorites**    | Maps users to their favorite media entries |
+
+---
 
 ## Running the Application
 
 ### 1. Prerequisites
+
 - Java 24
 - PostgreSQL 14+ (local or Docker)
 - Maven
 
+---
+
 ### 2. Database Setup
 
-- Copy the docker-compose.yml.dist
-- Add the data given to you in the info/DBCONFIG.txt which should be ignored by git.
+1. Copy the `docker-compose.yml.dist`
+2. Create `info/DBCONFIG.txt`
+3. Insert the database credentials as described in the file
+4. Ensure the file is ignored by Git
+
+---
 
 ### 3. Start the Server
 
-mvn compile exec:java -Dexec.mainClass="org.mrp.App"
+Start it by running the main App:
+`org.mrp.App`
 
-Server runs at: http://localhost:8080
+The server will start at:
 
-## API Endpoints
+```
+http://localhost:8080
+```
 
-| Method | Endpoint                      | Description                         |
-|--------|-------------------------------|-------------------------------------|
-| POST   | /api/users/register           | Register a new user                 |
-| POST   | /api/users/login              | Log in and receive a token          |
-| GET    | /api/users/{username}/profile | Retrieve user profile               |
-| PUT    | /api/users/{username}/profile | Update user profile                 |
-| POST   | /api/media                    | Create a new media entry            |
-| GET    | /api/media                    | Retrieve all media entries          |
-| GET    | /api/media/{id}               | Retrieve info about a media entry   |
-| PUT    | /api/media/{id}               | Update information of a media entry |
-| DELETE | /api/media/{id}               | Delete a specific media entry       |
+---
 
+## API Endpoints (Excerpt)
 
+| Method | Endpoint                  | Description                         |
+|--------|---------------------------|-------------------------------------|
+| POST   | /api/users/register       | Register a new user                 |
+| POST   | /api/users/login          | Log in and receive a token          |
+| GET    | /api/users/{id}/profile   | Retrieve user profile               |
+| PUT    | /api/users/{id}/profile   | Update user profile                 |
+| GET    | /api/users/{id}/ratings   | Retrieve user rating history        |
+| GET    | /api/users/{id}/favorites | Retrieve user favorites             |
+| POST   | /api/media                | Create a media entry                |
+| GET    | /api/media                | Get all media entries               |
+| GET    | /api/media/{id}           | Retrieve a media entry              |
+| PUT    | /api/media/{id}           | Update a media entry (creator only) |
+| DELETE | /api/media/{id}           | Delete a media entry (creator only) |
+| POST   | /api/ratings/media/{id}   | Rate a media entry                  |
+| PUT    | /api/ratings/{id}         | Update media rating                 |
+| DELETE | /api/ratings/{id}         | Delete media rating                 |
+| POST   | /api/media/{id}/favorite  | Mark media as favorite              |
+| DELETE | /api/media/{id}/favorite  | Remove media from favorites         |
+| POST   | /api/ratings/{id}/like    | Like a rating                       |
+| POST   | /api/ratings/{id}/confirm | Confirm rating comment              |
+
+A complete and tested Postman collection is provided in  
+`MRP_Postman_Collection.json`.
+
+---
 
 ## Error Handling
 
-All exceptions extend ApiException, which carries an HTTP status code.
-Responses are automatically formatted as JSON, for example:
+All application errors extend `ApiException`, which includes an HTTP status code.
+
+Errors are returned as JSON:
+
+```json
 { "error": "User 'john' already exists" }
+```
 
-Common error types:
-- BadRequestException → 400
-- InvalidCredentialsException → 401
-- UserAlreadyExistsException → 409
-- InternalServerException → 500
+Common exception mappings:
 
-## Integration Tests
+- `BadRequestException` → 400
+- `InvalidCredentialsException` → 401
+- `ForbiddenAccessException` → 403
+- `UserAlreadyExistsException` → 409
+- `InternalServerException` → 500
 
-Integration tests are written using JUnit 5 and use the Java HttpClient API to hit live endpoints.
+---
 
-Run all tests:
+## Testing
 
-mvn test
+Unit tests are written using **JUnit 5** and **Mockito** and focus on:
 
-Example test: UserIntegrationTest covers registration, login, duplicate detection, profile retrieval, and profile update.
+- Authorization and ownership validation
+- Rating uniqueness constraints
+- Favorite add/remove behavior
+- Business rule enforcement
+- Exception handling paths
 
-A Postman collection (MRP_Postman_Collection.json) is also included for manual and automated API testing.
+A Postman collection is included for manual and automated API testing.
 
-## Future Extensions
-
-- Rating and comments system
-- Favorites and recommendations
-- Leaderboard of most active users
-- Docker Compose setup for full local environment
-- JSON error middleware and request timing metrics
 
 ## License
 
